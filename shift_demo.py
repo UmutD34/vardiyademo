@@ -60,7 +60,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-f"<style>div.block-container{{padding-top:1rem}} .st-emotion-cache-fblp2m{{color:{PRIMARY}!important}}</style>",unsafe_allow_html=True)
+
 st.title(PAGE_TITLE)
 
 # ── auth ───────────────────────────────────────────────
