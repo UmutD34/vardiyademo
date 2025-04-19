@@ -58,9 +58,16 @@ if MENU=='Veriler':
     st.header('📂 Veriler')
     # Senaryo
     st.subheader('Senaryo Ayarları')
-    scen_sel=st.radio('Haftalık Dağıtım',SCENS,index=list(SCENS).index(stype))
-    ask_ara=st.checkbox('Ara vardiyaları manuel seçeceğim',value=MGR['scenario'].get('ask_ara',False))
-    if st.button('Kaydet Senaryo'): MGR['scenario'].update({'type':scen_sel,'ask_ara':ask_ara}); save_db(DB); st.success('Kaydedildi')
+    # Açıklamalı radyo butonu
+    scen_keys=list(SCENS.keys())
+    scen_labels=list(SCENS.values())
+    default_idx=scen_keys.index(stype)
+    label_sel=st.radio('Haftalık Dağıtım', scen_labels, index=default_idx)
+    scen_sel=scen_keys[scen_labels.index(label_sel)]  # etiketten anahtara dönüş
+
+    ask_ara=st.checkbox('Ara vardiyaları manuel seçeceğim', value=MGR['scenario'].get('ask_ara',False))
+    if st.button('Kaydet Senaryo'):
+        MGR['scenario'].update({'type':scen_sel,'ask_ara':ask_ara}); save_db(DB); st.success('Kaydedildi')
 
     st.divider(); st.subheader('Çalışanlar')
 
