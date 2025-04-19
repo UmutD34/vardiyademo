@@ -36,8 +36,31 @@ def save_db(db):
 if 'db' not in st.session_state: st.session_state['db']=load_db()
 DB=st.session_state['db']; DB.setdefault('users',{}).update({k:v for k,v in DEFAULT_USERS.items() if k not in DB['users']}); DB.setdefault('managers',{}); save_db(DB)
 
-st.set_page_config(page_title=PAGE_TITLE,page_icon="📆",layout="wide")
-st.markdown(f"<style>div.block-container{{padding-top:1rem}} .st-emotion-cache-fblp2m{{color:{PRIMARY}!important}}</style>",unsafe_allow_html=True)
+# --- Kurumsal tema ve stil ---
+st.set_page_config(
+    page_title=PAGE_TITLE,
+    page_icon="📆",
+    layout="wide",
+    theme=dict(
+        primaryColor="#0D4C92",               # Şişecam mavisi
+        backgroundColor="#F5F7FA",            # Çok açık gri
+        secondaryBackgroundColor="#FFFFFF",   # Kart/yan panel beyazı
+        textColor="#111111",
+        font="Source Sans Pro"
+    )
+)
+# Ek stil
+st.markdown(
+    f"""
+    <style>
+      div.block-container{{padding-top:2rem}}
+      .stButton>button{{border-radius:8px;font-weight:600}}
+      [role="grid"]{{border:1px solid #E0E0E0}}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+f"<style>div.block-container{{padding-top:1rem}} .st-emotion-cache-fblp2m{{color:{PRIMARY}!important}}</style>",unsafe_allow_html=True)
 st.title(PAGE_TITLE)
 
 # ── auth ───────────────────────────────────────────────
@@ -62,7 +85,7 @@ MGR.setdefault('scenario',{'type':stype,'ask_ara':False}); MGR['scenario']['type
 MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],index=0)
 # — imza —
 st.sidebar.markdown('---')
-st.sidebar.markdown('**Dilayini cok seven Umut tarafından aşk ile yapıldı.**')
+st.sidebar.markdown('**Umut Doğan**')
 
 # ── Veriler ────────────────────────────────────────────
 if MENU=='Veriler':
