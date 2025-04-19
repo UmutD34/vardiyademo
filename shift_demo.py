@@ -169,7 +169,7 @@ if MENU=='Vardiya Oluştur':
 # ── Geçmiş ─────────────────────────────────────────────
 if MENU=='Geçmiş':
     st.header('📑 Geçmiş')
-    hist = MGR.get('history', [])
+    hist=MGR.get('history',[])
     if not hist:
         st.info('Kayıt yok')
     else:
@@ -181,7 +181,6 @@ if MENU=='Geçmiş':
 
         col_clear,_=st.columns([1,5])
         if col_clear.button('Geçmişi Temizle 🗑️'):
-            if st.confirm('Tüm geçmiş silinecek, emin misiniz?'):
-                MGR['history'].clear(); save_db(DB)
-                st.success('Geçmiş temizlendi')
-                st.rerun()
+            MGR['history'].clear(); save_db(DB)
+            st.success('Geçmiş temizlendi')
+            st.rerun()
