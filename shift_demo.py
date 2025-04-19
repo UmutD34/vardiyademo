@@ -62,7 +62,7 @@ MGR.setdefault('scenario',{'type':stype,'ask_ara':False}); MGR['scenario']['type
 MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],index=0)
 # — imza —
 st.sidebar.markdown('---')
-st.sidebar.markdown('**Programlayan ve Tasarlayan Umut Dogan ve Karısı Dilay Dogan**')
+st.sidebar.markdown('**Umut Doğan**')
 
 # ── Veriler ────────────────────────────────────────────
 if MENU=='Veriler':
@@ -158,12 +158,21 @@ if MENU=='Vardiya Oluştur':
                 else:  # denge
                     prop='Sabah' if (d_idx+idx)%2==0 else 'Akşam'
 
-                                                # Cumartesi / Pazar dönüşümlü kuralı
-                if day in ['Cumartesi','Pazar'] and prev:
+                                                # Cumartesi dönüşümlü Sabah⇄Ara kuralı
+                if day=='Cumartesi' and prev:
+                    if prev.get(day)=='Sabah':
+                        prop='Ara'
+                    elif prev.get(day)=='Ara':
+                        prop='Sabah'
+                    elif prev.get(day)=='Akşam':
+                        prop='Sabah'
+
+                # Pazar için basit Sabah/Akşam terslemesi
+                if day=='Pazar' and prev:
                     if prev.get(day) in ['Sabah','Ara']:
-                        prop = 'Akşam'
-                    elif prev.get(day) == 'Akşam':
-                        prop = 'Sabah'
+                        prop='Akşam'
+                    elif prev.get(day)=='Akşam':
+                        prop='Sabah'
 
                 # Ara önceliği ve ardışık kontroller: prop='Akşam' if prop=='Sabah' else 'Sabah'
                 if d_idx>0 and r[DAYS[d_idx-1]]==prop: prop='Akşam' if prop=='Sabah' else 'Sabah'
