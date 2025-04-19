@@ -62,7 +62,7 @@ MGR.setdefault('scenario',{'type':stype,'ask_ara':False}); MGR['scenario']['type
 MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],index=0)
 # — imza —
 st.sidebar.markdown('---')
-st.sidebar.markdown('**Umut Doğan**')
+st.sidebar.markdown('**Dilayini cok seven Umut tarafından aşk ile yapıldı.**')
 
 # ── Veriler ────────────────────────────────────────────
 if MENU=='Veriler':
