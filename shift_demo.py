@@ -155,9 +155,14 @@ if MENU=='Vardiya Oluştur':
                 else:  # denge
                     prop='Sabah' if (d_idx+idx)%2==0 else 'Akşam'
 
-                # Ara önceliği
-                if e['name'] in ara_list and prop=='Sabah': prop='Ara'
-                if prev and prev.get(day)==prop: prop='Akşam' if prop=='Sabah' else 'Sabah'
+                                                # Cumartesi / Pazar dönüşümlü kuralı
+                if day in ['Cumartesi','Pazar'] and prev:
+                    if prev.get(day) in ['Sabah','Ara']:
+                        prop = 'Akşam'
+                    elif prev.get(day) == 'Akşam':
+                        prop = 'Sabah'
+
+                # Ara önceliği ve ardışık kontroller: prop='Akşam' if prop=='Sabah' else 'Sabah'
                 if d_idx>0 and r[DAYS[d_idx-1]]==prop: prop='Akşam' if prop=='Sabah' else 'Sabah'
                 r[day]=prop
             rows.append(r)
