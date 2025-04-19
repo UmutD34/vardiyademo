@@ -8,7 +8,7 @@ PRIMARY="#0D4C92"; DATA_FILE="data.json"
 DAYS=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"]
 SHIFT_MAP={"Sabah":"09:30‑18:00","Ara":"11:30‑20:00","Akşam":"13:30‑22:00","H.T":"Haftalık Tatil","PT":"Part‑time İzin","IZ":"İzin/Rapor"}
 SCENS={"denge":"Denge (herkes 3 Sabah + 3 Akşam)","ayrik":"Ayrık (ekibin yarısı sabit Sabah, yarısı Akşam)"}
-LEGACY={"balance":"denge","split":"ayrik"}
+LEGACY={"balance":"Haftada ","split":"ayrik"}
 DEFAULT_USERS={"admin":"1234","fatihdemir":"1234","ademkeles":"1234"}
 
 # ── helpers ─────────────────────────────────────────────
