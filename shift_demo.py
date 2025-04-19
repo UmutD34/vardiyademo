@@ -60,6 +60,9 @@ if stype not in SCENS: stype='denge'
 MGR.setdefault('scenario',{'type':stype,'ask_ara':False}); MGR['scenario']['type']=stype; save_db(DB)
 
 MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],index=0)
+# — imza —
+st.sidebar.markdown('---')
+st.sidebar.markdown('**Umut Doğan**')
 
 # ── Veriler ────────────────────────────────────────────
 if MENU=='Veriler':
@@ -169,6 +172,8 @@ if MENU=='Vardiya Oluştur':
         raw=pd.DataFrame(rows); pretty=raw.applymap(lambda x:SHIFT_MAP.get(x,x))
         st.dataframe(pretty,use_container_width=True)
         MGR['history'].append({'week_start':str(week_start),'schedule':raw.to_dict('records')}); save_db(DB)
+        # haftalık izin kayıtlarını temizle
+        st.session_state['iz_entries'] = {}
         st.download_button('Excel\'e Aktar',pretty.to_csv(index=False).encode('utf-8-sig'))
 
 # ── Geçmiş ─────────────────────────────────────────────
