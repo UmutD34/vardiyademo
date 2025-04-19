@@ -120,17 +120,19 @@ if MENU=='Vardiya Oluştur':
 # ── Geçmiş ─────────────────────────────────────────────
 if MENU=='Geçmiş':
     st.header('📑 Geçmiş')
-    if not MGR['history']:
+    hist = MGR.get('history', [])
+    if not hist:
         st.info('Kayıt yok')
     else:
-        options=[f"Hafta: {h['week_start']}" for h in MGR['history'][::-1]]
+        options=[f"Hafta: {h['week_start']}" for h in hist[::-1]]
         choice=st.selectbox('Hafta',options)
-        rec=MGR['history'][::-1][options.index(choice)]
+        rec=hist[::-1][options.index(choice)]
         df=pd.DataFrame(rec['schedule']).applymap(lambda x:SHIFT_MAP.get(x,x))
         st.dataframe(df,use_container_width=True)
 
-        # --- Geçmişi Temizle butonu ---
-        if st.button('Geçmişi Temizle 🗑️'):
-            MGR['history'].clear(); save_db(DB)
-            st.success('Tüm geçmiş silindi')
-            st.experimental_rerun()
+        col_clear,_=st.columns([1,5])
+        if col_clear.button('Geçmişi Temizle 🗑️'):
+            if st.confirm('Tüm geçmiş silinecek, emin misiniz?'):
+                MGR['history'].clear(); save_db(DB)
+                st.success('Geçmiş temizlendi')
+                st.experimental_rerun()
