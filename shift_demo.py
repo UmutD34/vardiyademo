@@ -6,7 +6,15 @@ import pandas as pd, streamlit as st
 PAGE_TITLE="Şişecam Paşabahçe | Otomatik Vardiya Sistemi"
 PRIMARY="#0D4C92"; DATA_FILE="data.json"
 DAYS=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"]
-SHIFT_MAP={"Sabah":"09:30‑18:00","Ara":"11:30‑20:00","Akşam":"13:30‑22:00","H.T":"Haftalık Tatil","PT":"Part‑time İzin","IZ":"İzin/Rapor"}
+SHIFT_MAP={
+    "Sabah":"09:30‑18:00",
+    "Ara":"11:30‑20:00",
+    "Akşam":"13:30‑22:00",
+    "H.T":"Haftalık Tatil",
+    "PT":"Part‑time İzin",
+    "Rapor":"Raporlu",
+    "Yİ":"Yıllık İzin",
+}
 SCENS={
     "denge":"Haftada herkese 3 gün Sabahçı 3 gün Akşamcı",
     "ayrik":"Haftada belli kişiler Sabahçı belli kişiler Akşamcı (ertesi hafta tersine döner)",
@@ -104,8 +112,17 @@ if MENU=='Vardiya Oluştur':
 
     week_start=st.date_input('Haftanın Pazartesi',datetime.today())
     ara_list=st.multiselect('Ara vardiya atanacaklar',[e['name'] for e in MGR['employees']]) if MGR['scenario']['ask_ara'] else []
-    iz_entries={}
-    with st.expander('Bu hafta İzin/Rapor'):
+    # --- izin/rapor girişi state ---
+    if 'iz_entries' not in st.session_state: st.session_state['iz_entries']={}
+    iz_entries=st.session_state['iz_entries']
+
+    with st.expander('Bu hafta İzin / Rapor'):
+        ie=st.selectbox('Çalışan',['—']+[e['name'] for e in MGR['employees']])
+        iday=st.selectbox('Gün',DAYS)
+        itype=st.selectbox('İzin Türü',['Rapor','Yıllık İzin'])
+        if st.button('Ekle',key='add_iz') and ie!='—':
+            iz_entries[ie]={"day":iday,"type":('Rapor' if itype=='Rapor' else 'Yİ')}
+            st.success('Eklendi')('Bu hafta İzin/Rapor'):
         ie=st.selectbox('Çalışan',['—']+[e['name'] for e in MGR['employees']])
         iday=st.selectbox('Gün',DAYS)
         if st.button('Ekle',key='add_iz') and ie!='—': iz_entries[ie]=iday; st.success('Eklendi')
@@ -117,7 +134,9 @@ if MENU=='Vardiya Oluştur':
         for idx,e in enumerate(MGR['employees']):
             r={'Çalışan':e['name'],'Sicil':e['sicil']}; prev=last_row(e['name'])
             for d_idx,day in enumerate(DAYS):
-                if iz_entries.get(e['name'])==day: r[day]='IZ'; continue
+                entry=iz_entries.get(e['name'])
+                if entry and entry['day']==day:
+                    r[day]=entry['type']; continue
                 if e.get('pt') and day in e.get('pt_days',[]): r[day]='PT'; continue
                 if day==e.get('ht_day'): r[day]='H.T'; continue
                 if DAYS[(d_idx+1)%7]==e.get('ht_day'): r[day]='Sabah'; continue
