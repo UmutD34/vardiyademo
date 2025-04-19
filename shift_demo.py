@@ -7,8 +7,11 @@ PAGE_TITLE="Şişecam Paşabahçe | Otomatik Vardiya Sistemi"
 PRIMARY="#0D4C92"; DATA_FILE="data.json"
 DAYS=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"]
 SHIFT_MAP={"Sabah":"09:30‑18:00","Ara":"11:30‑20:00","Akşam":"13:30‑22:00","H.T":"Haftalık Tatil","PT":"Part‑time İzin","IZ":"İzin/Rapor"}
-SCENS={"denge":"Denge (herkes 3 Sabah + 3 Akşam)","ayrik":"Ayrık (ekibin yarısı sabit Sabah, yarısı Akşam)"}
-LEGACY={"balance":"Haftada ","split":"ayrik"}
+SCENS={
+    "denge":"Haftada herkese 3 gün Sabahçı 3 gün Akşamcı",
+    "ayrik":"Haftada belli kişiler Sabahçı belli kişiler Akşamcı (ertesi hafta tersine döner)",
+}
+LEGACY={"balance":"denge","split":"ayrik"}
 DEFAULT_USERS={"admin":"1234","fatihdemir":"1234","ademkeles":"1234"}
 
 # ── helpers ─────────────────────────────────────────────
@@ -106,7 +109,20 @@ if MENU=='Vardiya Oluştur':
                 if DAYS[(d_idx-1)%7]==e.get('ht_day'):
                     r[day]='Ara' if e['name'] in ara_list else 'Akşam'; continue
                 scen=MGR['scenario']['type']
-                prop='Sabah' if (scen=='ayrik' and idx<len(MGR['employees'])/2) or (scen=='denge' and (d_idx+idx)%2==0) else 'Akşam'
+                # ------ Senaryo Seçimi ------
+                if scen=='ayrik':
+                    # Önceki haftada ağırlıklı Sabah olanlar bu hafta Akşamcı olacak ve tersi
+                    if prev:
+                        sabah_prev=sum(1 for d in DAYS if prev.get(d) in ['Sabah','Ara'])
+                        aksam_prev=sum(1 for d in DAYS if prev.get(d)=='Akşam')
+                        default_sabah = aksam_prev > sabah_prev  # tersine döndür
+                    else:
+                        default_sabah = idx < len(MGR['employees'])/2  # ilk hafta dağıt
+                    prop = 'Sabah' if default_sabah else 'Akşam'
+                else:  # denge
+                    prop='Sabah' if (d_idx+idx)%2==0 else 'Akşam'
+
+                # Ara önceliği
                 if e['name'] in ara_list and prop=='Sabah': prop='Ara'
                 if prev and prev.get(day)==prop: prop='Akşam' if prop=='Sabah' else 'Sabah'
                 if d_idx>0 and r[DAYS[d_idx-1]]==prop: prop='Akşam' if prop=='Sabah' else 'Sabah'
