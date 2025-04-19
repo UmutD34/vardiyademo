@@ -53,6 +53,17 @@ def save_db(db):
 if "db" not in st.session_state:
     st.session_state["db"] = load_db()
 DB = st.session_state["db"]
+# Eski json dosyalarında "managers" anahtarı yoksa ekle
+if "managers" not in DB:
+    DB["managers"] = {}
+# Aynı şekilde "users" anahtarı eksikse ekle
+if "users" not in DB:
+    DB["users"] = {
+        "admin": "1234",
+        "fatihdemir": "123456",
+        "ademkeles": "123456",
+    }
+save_db(DB)
 
 # ────────────────────────────────────────────────────────────────────────────────
 # GİRİŞ EKRANI
