@@ -117,17 +117,14 @@ if MENU=='Vardiya Oluştur':
     iz_entries=st.session_state['iz_entries']
 
     with st.expander('Bu hafta İzin / Rapor'):
-        ie=st.selectbox('Çalışan',['—']+[e['name'] for e in MGR['employees']])
-        iday=st.selectbox('Gün',DAYS)
-        itype=st.selectbox('İzin Türü',['Rapor','Yıllık İzin'])
-        if st.button('Ekle',key='add_iz') and ie!='—':
-            iz_entries[ie]={"day":iday,"type":('Rapor' if itype=='Rapor' else 'Yİ')}
-            st.success('Eklendi')('Bu hafta İzin/Rapor'):
-        ie=st.selectbox('Çalışan',['—']+[e['name'] for e in MGR['employees']])
-        iday=st.selectbox('Gün',DAYS)
-        if st.button('Ekle',key='add_iz') and ie!='—': iz_entries[ie]=iday; st.success('Eklendi')
+        ie = st.selectbox('Çalışan', ['—'] + [e['name'] for e in MGR['employees']])
+        iday = st.selectbox('Gün', DAYS)
+        itype = st.selectbox('İzin Türü', ['Rapor', 'Yıllık İzin'])
+        if st.button('Ekle', key='add_iz') and ie != '—':
+            iz_entries[ie] = {"day": iday, "type": ('Rapor' if itype == 'Rapor' else 'Yİ')}
+            st.success('Eklendi')
 
-    if st.button('Vardiya Oluştur 🛠️'):
+    if st.button('Vardiya Oluştur 🛠️'): Oluştur 🛠️'):
         last=MGR['history'][-1]['schedule'] if MGR['history'] else []
         def last_row(n): return next((r for r in last if r['Çalışan']==n),None)
         rows=[]
