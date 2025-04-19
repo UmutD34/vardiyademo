@@ -79,7 +79,7 @@ if MENU=='Veriler':
         pt_days=st.multiselect('PT İzin Günleri',DAYS) if is_pt else []
         if st.button('Ekle',key='add_emp') and nm and sc:
             MGR['employees'].append({'name':nm,'sicil':sc,'pt':is_pt,'pt_days':pt_days,'ht_day':ht})
-            save_db(DB); st.success('Çalışan eklendi'); st.experimental_rerun()
+            save_db(DB); st.success('Çalışan eklendi'); st.rerun()
 
     # --- Düzenleme tablosu ---
     emp_df=pd.DataFrame(MGR['employees']) if MGR['employees'] else pd.DataFrame(columns=['name','sicil','pt','pt_days','ht_day'])
@@ -158,4 +158,4 @@ if MENU=='Geçmiş':
             if st.confirm('Tüm geçmiş silinecek, emin misiniz?'):
                 MGR['history'].clear(); save_db(DB)
                 st.success('Geçmiş temizlendi')
-                st.experimental_rerun()
+                st.rerun()
