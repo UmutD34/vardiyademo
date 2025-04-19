@@ -62,7 +62,7 @@ MGR.setdefault('scenario',{'type':stype,'ask_ara':False}); MGR['scenario']['type
 MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],index=0)
 # — imza —
 st.sidebar.markdown('---')
-st.sidebar.markdown('**Umut Doğan**')
+st.sidebar.markdown('**Programlayan ve Tasarlayan Palladium Pasabahce**')
 
 # ── Veriler ────────────────────────────────────────────
 if MENU=='Veriler':
