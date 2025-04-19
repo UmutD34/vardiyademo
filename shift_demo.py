@@ -190,8 +190,16 @@ if MENU=='Vardiya Oluştur':
                     elif prev.get(day)=='Akşam':
                         prop='Sabah'
 
-                # Ara önceliği ve ardışık kontroller: prop='Akşam' if prop=='Sabah' else 'Sabah'
-                if d_idx>0 and r[DAYS[d_idx-1]]==prop: prop='Akşam' if prop=='Sabah' else 'Sabah'
+                # Ara önceliği ve ardışık kontroller
+                if e['name'] in ara_list and prop=='Sabah':
+                    prop='Ara'
+                # Eğer yönetici Ara'yı manuel seçiyorsa ve bu kişi listede yoksa 'Ara' atamasını engelle
+                if MGR['scenario'].get('ask_ara') and e['name'] not in ara_list and prop=='Ara':
+                    prop='Sabah'
+                if prev and prev.get(day)==prop:
+                    prop='Akşam' if prop=='Sabah' else 'Sabah'
+                if d_idx>0 and r[DAYS[d_idx-1]]==prop:
+                    prop='Akşam' if prop=='Sabah' else 'Sabah'
                 r[day]=prop
             rows.append(r)
         raw=pd.DataFrame(rows); pretty=raw.applymap(lambda x:SHIFT_MAP.get(x,x))
