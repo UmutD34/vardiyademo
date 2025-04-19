@@ -78,8 +78,8 @@ MGR.setdefault('scenario',{'type':stype,'ask_ara':False}); MGR['scenario']['type
 MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],index=0)
 # — imza —
 st.sidebar.markdown('---')
-st.sidebar.markdown('**uname**')
-st.sidebar.markdown('** Palladium Pasabahce Magazası Üretimidir Aşk ile Yapıldı**')
+
+st.sidebar.markdown('Palladium Pasabahce Magazası Üretimidir Aşk ile Yapıldı ❤️')
 
 # ── Veriler ────────────────────────────────────────────
 if MENU=='Veriler':
