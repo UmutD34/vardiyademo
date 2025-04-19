@@ -54,18 +54,32 @@ MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],in
 if MENU=='Veriler':
     st.header('📂 Veriler')
     # Senaryo
-    scen_sel=st.radio('Senaryo',SCENS,index=list(SCENS).index(stype))
+    st.subheader('Senaryo Ayarları')
+    scen_sel=st.radio('Haftalık Dağıtım',SCENS,index=list(SCENS).index(stype))
     ask_ara=st.checkbox('Ara vardiyaları manuel seçeceğim',value=MGR['scenario'].get('ask_ara',False))
-    if st.button('Kaydet Senaryo'): MGR['scenario'].update({'type':scen_sel,'ask_ara':ask_ara}); save_db(DB); st.success('Kaydedildi')
+    if st.button('Kaydet Senaryo'): MGR['scenario'].update({'type':scen_sel,'ask_ara':ask_ara}); save_db(DB); st.success('Kaydedildi')
+
     st.divider(); st.subheader('Çalışanlar')
 
-    # Employee table using data_editor
+    # --- Yeni çalışan ekleme formu ---
+    with st.expander('Yeni Çalışan Ekle'):
+        ec1,ec2=st.columns(2); nm=ec1.text_input('İsim'); sc=ec2.text_input('Sicil')
+        is_pt=st.checkbox('Part‑time')
+        ht=st.selectbox('Haftalık Tatil',DAYS,index=6)
+        pt_days=st.multiselect('PT İzin Günleri',DAYS) if is_pt else []
+        if st.button('Ekle',key='add_emp') and nm and sc:
+            MGR['employees'].append({'name':nm,'sicil':sc,'pt':is_pt,'pt_days':pt_days,'ht_day':ht})
+            save_db(DB); st.success('Çalışan eklendi'); st.experimental_rerun()
+
+    # --- Düzenleme tablosu ---
     emp_df=pd.DataFrame(MGR['employees']) if MGR['employees'] else pd.DataFrame(columns=['name','sicil','pt','pt_days','ht_day'])
     edited=st.data_editor(emp_df,width=None,num_rows='dynamic',hide_index=True)
-    if st.button('Değişiklikleri Kaydet'):
-        MGR['employees']=edited.to_dict('records'); save_db(DB); st.success('Kaydedildi')
 
-# ── Vardiya Oluştur ───────────────────────────────────
+    if st.button('Değişiklikleri Kaydet'):
+        cleaned=edited.dropna(subset=['name','sicil'])  # boş satırları sil
+        MGR['employees']=cleaned.to_dict('records'); save_db(DB); st.success('Kaydedildi')
+
+# ── Vardiya Oluştur ─────────────────────────────────── ───────────────────────────────────
 if MENU=='Vardiya Oluştur':
     st.header('🗓️ Yeni Vardiya')
     if not MGR['employees']: st.warning('Önce çalışan ekleyin'); st.stop()
