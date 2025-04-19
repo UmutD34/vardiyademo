@@ -124,10 +124,12 @@ if MENU=='Vardiya Oluştur':
             iz_entries[ie] = {"day": iday, "type": ('Rapor' if itype == 'Rapor' else 'Yİ')}
             st.success('Eklendi')
 
-    if st.button('Vardiya Oluştur 🛠️'): Oluştur 🛠️'):
-        last=MGR['history'][-1]['schedule'] if MGR['history'] else []
-        def last_row(n): return next((r for r in last if r['Çalışan']==n),None)
-        rows=[]
+    if st.button('Vardiya Oluştur 🛠️'):
+        last = MGR['history'][-1]['schedule'] if MGR['history'] else []
+        def last_row(n):
+            return next((r for r in last if r['Çalışan'] == n), None)
+
+        rows = []
         for idx,e in enumerate(MGR['employees']):
             r={'Çalışan':e['name'],'Sicil':e['sicil']}; prev=last_row(e['name'])
             for d_idx,day in enumerate(DAYS):
