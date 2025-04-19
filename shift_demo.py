@@ -86,8 +86,16 @@ if MENU=='Veriler':
     edited=st.data_editor(emp_df,width=None,num_rows='dynamic',hide_index=True)
 
     if st.button('Değişiklikleri Kaydet'):
-        cleaned=edited.dropna(subset=['name','sicil'])  # boş satırları sil
-        MGR['employees']=cleaned.to_dict('records'); save_db(DB); st.success('Kaydedildi')
+        # Boş satırları ve tekrarları temizle
+        tmp = edited.copy()
+        tmp = tmp.replace({'': None})
+        tmp = tmp.dropna(subset=['name','sicil'])
+        tmp = tmp[~tmp['name'].isin([None,'None']) & ~tmp['sicil'].isin([None,'None'])]
+        tmp = tmp.drop_duplicates(subset=['sicil'])
+        MGR['employees'] = tmp.to_dict('records')
+        save_db(DB)
+        st.success('Kaydedildi')
+        st.rerun()
 
 # ── Vardiya Oluştur ─────────────────────────────────── ───────────────────────────────────
 if MENU=='Vardiya Oluştur':
