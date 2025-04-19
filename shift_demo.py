@@ -42,7 +42,6 @@ st.set_page_config(
     page_icon="📆",
     layout="wide"
 )
-)
 # Ek stil
 st.markdown(
     f"""
