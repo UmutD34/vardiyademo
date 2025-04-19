@@ -79,7 +79,7 @@ MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],in
 # — imza —
 st.sidebar.markdown('---')
 
-st.sidebar.markdown('Palladium Pasabahce Magazası Üretimidir Aşk ile Yapıldı ❤️')
+st.sidebar.markdown('Palladium&Hiltown Pasabahce Magazaları Üretimidir Aşk ile Yapıldı ❤️')
 
 # ── Veriler ────────────────────────────────────────────
 if MENU=='Veriler':
