@@ -40,14 +40,8 @@ DB=st.session_state['db']; DB.setdefault('users',{}).update({k:v for k,v in DEFA
 st.set_page_config(
     page_title=PAGE_TITLE,
     page_icon="📆",
-    layout="wide",
-    theme=dict(
-        primaryColor="#0D4C92",               # Şişecam mavisi
-        backgroundColor="#F5F7FA",            # Çok açık gri
-        secondaryBackgroundColor="#FFFFFF",   # Kart/yan panel beyazı
-        textColor="#111111",
-        font="Source Sans Pro"
-    )
+    layout="wide"
+)
 )
 # Ek stil
 st.markdown(
