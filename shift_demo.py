@@ -166,7 +166,7 @@ if MENU=='Vardiya Oluştur':
     pretty['Sicil'] = df['Sicil']
     st.dataframe(pretty, use_container_width=True)
     MGR['history'].append({'week_start':str(week),'schedule':rows}); save_db(DB)
-    st.session_state['iz']={}; st.download_button('Excel',df.to_csv(index=False).encode('utf-8-sig'))
+    st.session_state['iz']={}; st.download_button('Excel'e aktar.',df.to_csv(index=False).encode('utf-8-sig'))
 
 # ── Geçmiş ────────────────────────────────
 if MENU=='Geçmiş': 
