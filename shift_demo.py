@@ -1,230 +1,237 @@
-# Shift Demo – bug‑free edition with nicer employee UI
-import json, os
-from datetime import datetime
-import pandas as pd, streamlit as st
+# Shift Demo – Stabil base + Erken Vardiya Senaryosu
+import json, os, random
+from datetime import datetime, timedelta
+import pandas as pd
+import streamlit as st
 
-PAGE_TITLE="Şişecam Paşabahçe | Otomatik Vardiya Sistemi"
-PRIMARY="#0D4C92"; DATA_FILE="data.json"
-DAYS=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"]
-SHIFT_MAP={
-    "Sabah":"09:30‑18:00",
-    "Ara":"11:30‑20:00",
-    "Akşam":"13:30‑22:00",
-    "H.T":"Haftalık Tatil",
-    "PT":"Part‑time İzin",
-    "Rapor":"Raporlu",
-    "Yİ":"Yıllık İzin",
+PAGE_TITLE = "Şişecam Paşabahçe | Otomatik Vardiya Sistemi"
+DATA_FILE = "data.json"
+DAYS = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
+SHIFT_MAP = {
+    "Sabah": "09:30‑18:00",
+    "Ara": "11:30‑20:00",
+    "Akşam": "13:30‑22:00",
+    "H.T": "Haftalık Tatil",
+    "PT": "Part‑time İzin",
+    "Rapor": "Raporlu",
+    "Yİ": "Yıllık İzin",
 }
-SCENS={
-    "denge":"Haftada herkese 3 gün Sabahçı 3 gün Akşamcı",
-    "ayrik":"Haftada belli kişiler Sabahçı belli kişiler Akşamcı (ertesi hafta tersine döner)",
+SCENS = {
+    "denge": "Haftada herkese 3 gün Sabahçı + 3 gün Akşamcı",
+    "ayrik": "Yarısı Sabahçı, yarısı Akşamcı (hafta hafta terslenir)",
+    "erken": "Erken Vardiya (sevkiyat saati + rastgele 2 kişi erken gelir)",
 }
-LEGACY={"balance":"denge","split":"ayrik"}
-DEFAULT_USERS={"admin":"1234","fatihdemir":"1234","ademkeles":"1234"}
+LEGACY = {"balance": "denge", "split": "ayrik"}
+DEFAULT_USERS = {"admin": "1234", "fatihdemir": "1234", "ademkeles": "1234"}
 
-# ── helpers ─────────────────────────────────────────────
+# ───────────── Persistence ─────────────
 
 def load_db():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE,'r',encoding='utf-8') as f:return json.load(f)
-    return {"users":DEFAULT_USERS.copy(),"managers":{}}
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"users": DEFAULT_USERS.copy(), "managers": {}}
+
 
 def save_db(db):
-    with open(DATA_FILE,'w',encoding='utf-8') as f:json.dump(db,f,ensure_ascii=False,indent=2)
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(db, f, ensure_ascii=False, indent=2)
 
-# ── init state ──────────────────────────────────────────
-if 'db' not in st.session_state: st.session_state['db']=load_db()
-DB=st.session_state['db']; DB.setdefault('users',{}).update({k:v for k,v in DEFAULT_USERS.items() if k not in DB['users']}); DB.setdefault('managers',{}); save_db(DB)
+if "db" not in st.session_state:
+    st.session_state["db"] = load_db()
+DB = st.session_state["db"]
+DB.setdefault("users", {}).update({k: v for k, v in DEFAULT_USERS.items() if k not in DB["users"]})
+DB.setdefault("managers", {})
+save_db(DB)
 
-# --- Kurumsal tema ve stil ---
-st.set_page_config(
-    page_title=PAGE_TITLE,
-    page_icon="📆",
-    layout="wide"
-)
-# Ek stil
+# ───────────── Page Config & Style ─────────────
+
+st.set_page_config(page_title=PAGE_TITLE, page_icon="📆", layout="wide")
 st.markdown(
-    f"""
+    """
     <style>
-      div.block-container{{padding-top:2rem}}
-      .stButton>button{{border-radius:8px;font-weight:600}}
-      [role="grid"]{{border:1px solid #E0E0E0}}
+      div.block-container { padding-top: 2rem; }
+      .stButton>button { border-radius: 8px; font-weight: 600; }
+      [role="grid"] { border: 1px solid #E0E0E0; }
     </style>
     """,
     unsafe_allow_html=True,
 )
-
 st.title(PAGE_TITLE)
 
-# ── auth ───────────────────────────────────────────────
-if 'user' not in st.session_state:
-    u,p=st.columns(2); uname=u.text_input('Kullanıcı Adı'); upass=p.text_input('Şifre',type='password')
-    if st.button('Giriş'):
-        if DB['users'].get(uname)==upass:
-            if uname not in DB['managers']:
-                DB['managers'][uname]={'employees':[], 'scenario':{'type':'denge','ask_ara':False}, 'history':[]}; save_db(DB)
-            st.session_state['user']=uname; st.rerun()
-        else: st.error('Hatalı giriş')
+# ───────────── Authentication ─────────────
+
+if "user" not in st.session_state:
+    col1, col2 = st.columns(2)
+    uname = col1.text_input("Kullanıcı Adı")
+    upass = col2.text_input("Şifre", type="password")
+    if st.button("Giriş"):
+        if DB["users"].get(uname) == upass:
+            if uname not in DB["managers"]:
+                DB["managers"][uname] = {"employees": [], "scenario": {"type": "denge", "ask_ara": False}, "history": []}
+                save_db(DB)
+            st.session_state["user"] = uname
+            st.rerun()
+        else:
+            st.error("Hatalı kullanıcı/şifre")
     st.stop()
 
-USER=st.session_state['user']; MGR=DB['managers'][USER]
-if st.sidebar.button('🔓 Oturumu Kapat'): del st.session_state['user']; st.rerun()
+USER = st.session_state["user"]
+MGR = DB["managers"][USER]
+if st.sidebar.button("🔓 Oturumu Kapat"):
+    del st.session_state["user"]
+    st.rerun()
 
-# legacy scenario key
-stype=LEGACY.get(MGR.get('scenario',{}).get('type','denge'),MGR.get('scenario',{}).get('type','denge'))
-if stype not in SCENS: stype='denge'
-MGR.setdefault('scenario',{'type':stype,'ask_ara':False}); MGR['scenario']['type']=stype; save_db(DB)
+# ───────────── Scenario Legacy Fix ─────────────
 
-MENU=st.sidebar.radio('🚀 Menü',["Vardiya Oluştur","Veriler","Geçmiş"],index=0)
-# — imza —
-st.sidebar.markdown('---')
+stype = LEGACY.get(MGR.get("scenario", {}).get("type", "denge"), MGR.get("scenario", {}).get("type", "denge"))
+if stype not in SCENS:
+    stype = "denge"
+MGR.setdefault("scenario", {"type": stype, "ask_ara": False, "ship_hour": 8})
+MGR["scenario"]["type"] = stype
+save_db(DB)
 
-st.sidebar.markdown('Palladium&Hiltown Pasabahce Magazaları Üretimidir Aşk ile Yapıldı ❤️')
+# ───────────── Sidebar Menu ─────────────
 
-# ── Veriler ────────────────────────────────────────────
-if MENU=='Veriler':
-    st.header('📂 Veriler')
-    # Senaryo
-    st.subheader('Senaryo Ayarları')
-    # Açıklamalı radyo butonu
-    scen_keys=list(SCENS.keys())
-    scen_labels=list(SCENS.values())
-    default_idx=scen_keys.index(stype)
-    label_sel=st.radio('Haftalık Dağıtım', scen_labels, index=default_idx)
-    scen_sel=scen_keys[scen_labels.index(label_sel)]  # etiketten anahtara dönüş
+menu = st.sidebar.radio("🚀 Menü", ["Vardiya Oluştur", "Veriler", "Geçmiş"], index=0)
+st.sidebar.markdown("---")
+st.sidebar.markdown("👤 <b>Umut Doğan</b>", unsafe_allow_html=True)
 
-    ask_ara=st.checkbox('Ara vardiyaları manuel seçeceğim', value=MGR['scenario'].get('ask_ara',False))
-    if st.button('Kaydet Senaryo'):
-        MGR['scenario'].update({'type':scen_sel,'ask_ara':ask_ara}); save_db(DB); st.success('Kaydedildi')
+# ───────────── Veriler Page ─────────────
 
-    st.divider(); st.subheader('Çalışanlar')
-
-    # --- Yeni çalışan ekleme formu ---
-    with st.expander('Yeni Çalışan Ekle'):
-        ec1,ec2=st.columns(2); nm=ec1.text_input('İsim'); sc=ec2.text_input('Sicil')
-        is_pt=st.checkbox('Part‑time')
-        ht=st.selectbox('Haftalık Tatil',DAYS,index=6)
-        pt_days=st.multiselect('PT İzin Günleri',DAYS) if is_pt else []
-        if st.button('Ekle',key='add_emp') and nm and sc:
-            MGR['employees'].append({'name':nm,'sicil':sc,'pt':is_pt,'pt_days':pt_days,'ht_day':ht})
-            save_db(DB); st.success('Çalışan eklendi'); st.rerun()
-
-    # --- Düzenleme tablosu ---
-    emp_df=pd.DataFrame(MGR['employees']) if MGR['employees'] else pd.DataFrame(columns=['name','sicil','pt','pt_days','ht_day'])
-    edited=st.data_editor(emp_df,width=None,num_rows='dynamic',hide_index=True)
-
-    if st.button('Değişiklikleri Kaydet'):
-        # Boş satırları ve tekrarları temizle
-        tmp = edited.copy()
-        tmp = tmp.replace({'': None})
-        tmp = tmp.dropna(subset=['name','sicil'])
-        tmp = tmp[~tmp['name'].isin([None,'None']) & ~tmp['sicil'].isin([None,'None'])]
-        tmp = tmp.drop_duplicates(subset=['sicil'])
-        MGR['employees'] = tmp.to_dict('records')
+if menu == "Veriler":
+    st.header("📂 Veriler")
+    st.subheader("Senaryo Ayarları")
+    keys = list(SCENS.keys())
+    labels = list(SCENS.values())
+    idx = keys.index(stype)
+    label = st.radio("Haftalık Dağıtım", labels, index=idx)
+    sel = keys[labels.index(label)]
+    ask = st.checkbox("Ara vardiyaları manuel seçeceğim", value=MGR["scenario"].get("ask_ara", False))
+    ship = MGR["scenario"].get("ship_hour", 8)
+    if sel == "erken":
+        ship = st.number_input("Sevkiyat Saati (0-23)", min_value=0, max_value=23, value=int(ship))
+    if st.button("Kaydet Senaryo"):
+        MGR["scenario"].update({"type": sel, "ask_ara": ask, "ship_hour": ship})
         save_db(DB)
-        st.success('Kaydedildi')
+        st.success("Kaydedildi")
+    st.divider()
+    st.subheader("Çalışanlar")
+    with st.expander("Yeni Çalışan Ekle"):
+        e1, e2 = st.columns(2)
+        name = e1.text_input("İsim")
+        sicil = e2.text_input("Sicil")
+        pt = st.checkbox("Part-time")
+        ht = st.selectbox("Haftalık Tatil", DAYS)
+        pt_days = st.multiselect("PT İzin Günleri", DAYS) if pt else []
+        if st.button("Ekle", key="add_emp") and name and sicil:
+            MGR["employees"].append({"name": name, "sicil": sicil, "pt": pt, "pt_days": pt_days, "ht_day": ht})
+            save_db(DB)
+            st.success("Çalışan eklendi")
+            st.rerun()
+    df = pd.DataFrame(MGR["employees"]) if MGR["employees"] else pd.DataFrame(columns=["name","sicil","pt","pt_days","ht_day"])
+    edited = st.data_editor(df, num_rows="dynamic", hide_index=True)
+    if st.button("Değişiklikleri Kaydet"):
+        tmp = edited.replace({"": None}).dropna(subset=["name","sicil"]).drop_duplicates(subset=["sicil"])
+        MGR["employees"] = tmp.to_dict("records")
+        save_db(DB)
+        st.success("Kaydedildi")
         st.rerun()
 
-# ── Vardiya Oluştur ─────────────────────────────────── ───────────────────────────────────
-if MENU=='Vardiya Oluştur':
-    st.header('🗓️ Yeni Vardiya')
-    if not MGR['employees']: st.warning('Önce çalışan ekleyin'); st.stop()
+# ───────────── Vardiya Oluştur Page ─────────────
 
-    week_start=st.date_input('Haftanın Pazartesi',datetime.today())
-    ara_list=st.multiselect('Ara vardiya atanacaklar',[e['name'] for e in MGR['employees']]) if MGR['scenario']['ask_ara'] else []
-    # --- izin/rapor girişi state ---
-    if 'iz_entries' not in st.session_state: st.session_state['iz_entries']={}
-    iz_entries=st.session_state['iz_entries']
-
-    with st.expander('Bu hafta İzin / Rapor'):
-        ie = st.selectbox('Çalışan', ['—'] + [e['name'] for e in MGR['employees']])
-        iday = st.selectbox('Gün', DAYS)
-        itype = st.selectbox('İzin Türü', ['Rapor', 'Yıllık İzin'])
-        if st.button('Ekle', key='add_iz') and ie != '—':
-            iz_entries[ie] = {"day": iday, "type": ('Rapor' if itype == 'Rapor' else 'Yİ')}
-            st.success('Eklendi')
-
-    if st.button('Vardiya Oluştur 🛠️'):
-        last = MGR['history'][-1]['schedule'] if MGR['history'] else []
-        def last_row(n):
-            return next((r for r in last if r['Çalışan'] == n), None)
-
-        rows = []
-        for idx,e in enumerate(MGR['employees']):
-            r={'Çalışan':e['name'],'Sicil':e['sicil']}; prev=last_row(e['name'])
-            for d_idx,day in enumerate(DAYS):
-                entry=iz_entries.get(e['name'])
-                if entry and entry['day']==day:
-                    r[day]=entry['type']; continue
-                if e.get('pt') and day in e.get('pt_days',[]): r[day]='PT'; continue
-                if day==e.get('ht_day'): r[day]='H.T'; continue
-                if DAYS[(d_idx+1)%7]==e.get('ht_day'): r[day]='Sabah'; continue
-                if DAYS[(d_idx-1)%7]==e.get('ht_day'):
-                    r[day]='Ara' if e['name'] in ara_list else 'Akşam'; continue
-                scen=MGR['scenario']['type']
-                # ------ Senaryo Seçimi ------
-                if scen=='ayrik':
-                    # Önceki haftada ağırlıklı Sabah olanlar bu hafta Akşamcı olacak ve tersi
+if menu == "Vardiya Oluştur":
+    st.header("🗓️ Yeni Vardiya")
+    if not MGR["employees"]:
+        st.warning("Önce çalışan ekleyin")
+        st.stop()
+    week = st.date_input("Haftanın Pazartesi", datetime.today())
+    ara = []
+    if MGR["scenario"].get("ask_ara"):
+        ara = st.multiselect("Ara vardiya atanacaklar", [e["name"] for e in MGR["employees"]])
+    if "iz_entries" not in st.session_state:
+        st.session_state["iz_entries"] = {}
+    iz = st.session_state["iz_entries"]
+    with st.expander("Bu hafta İzin/Rapor"):
+        sel_emp = st.selectbox("Çalışan", ["—"] + [e["name"] for e in MGR["employees"]])
+        sel_day = st.selectbox("Gün", DAYS)
+        sel_type = st.selectbox("İzin Türü", ["Rapor","Yıllık İzin"])
+        if st.button("Ekle", key="add_iz") and sel_emp != "—":
+            iz[sel_emp] = {"day": sel_day, "type": ("Rapor" if sel_type=="Rapor" else "Yİ")}
+            st.success("Eklendi")
+    if st.button("Vardiya Oluştur 🛠️"):
+        last = MGR["history"][-1]["schedule"] if MGR["history"] else []
+        def prev_row(n): return next((r for r in last if r["Çalışan"]==n),None)
+        rows=[]
+        for idx, emp in enumerate(MGR["employees"]):
+            r={"Çalışan":emp["name"],"Sicil":emp["sicil"]}
+            prev = prev_row(emp["name"])
+            for d_i, day in enumerate(DAYS):
+                # İzin/Rapor
+                ent = iz.get(emp["name"])
+                if ent and ent["day"]==day:
+                    r[day]=ent["type"]
+                    continue
+                # PT
+                if emp.get("pt") and day in emp.get("pt_days",[]):
+                    r[day]="PT"
+                    continue
+                # Haftalık Tatil
+                if day==emp.get("ht_day"):
+                    r[day]="H.T"
+                    continue
+                # Tatil komşusu kuralları
+                if DAYS[(d_i+1)%7]==emp.get("ht_day"):
+                    r[day]="Sabah"
+                    continue
+                if DAYS[(d_i-1)%7]==emp.get("ht_day"):
+                    r[day]="Ara" if emp["name"] in ara else "Akşam"
+                    continue
+                # Senaryo
+                scen = MGR["scenario"]["type"]
+                if scen=="ayrik":
+                    # Haftalık tersleme
                     if prev:
-                        sabah_prev=sum(1 for d in DAYS if prev.get(d) in ['Sabah','Ara'])
-                        aksam_prev=sum(1 for d in DAYS if prev.get(d)=='Akşam')
-                        default_sabah = aksam_prev > sabah_prev  # tersine döndür
+                        sab= sum(1 for d in DAYS if prev.get(d) in ["Sabah","Ara"])
+                        akm= sum(1 for d in DAYS if prev.get(d)=="Akşam")
+                        prop = "Akşam" if sab>akm else "Sabah"
                     else:
-                        default_sabah = idx < len(MGR['employees'])/2  # ilk hafta dağıt
-                    prop = 'Sabah' if default_sabah else 'Akşam'
-                else:  # denge
-                    prop='Sabah' if (d_idx+idx)%2==0 else 'Akşam'
-
-                                                # Cumartesi dönüşümlü Sabah⇄Ara kuralı
-                if day=='Cumartesi' and prev:
-                    if prev.get(day)=='Sabah':
-                        prop='Ara'
-                    elif prev.get(day)=='Ara':
-                        prop='Sabah'
-                    elif prev.get(day)=='Akşam':
-                        prop='Sabah'
-
-                # Pazar için basit Sabah/Akşam terslemesi
-                if day=='Pazar' and prev:
-                    if prev.get(day) in ['Sabah','Ara']:
-                        prop='Akşam'
-                    elif prev.get(day)=='Akşam':
-                        prop='Sabah'
-
-                # Ara önceliği ve ardışık kontroller
-                if e['name'] in ara_list and prop=='Sabah':
-                    prop='Ara'
-                # Eğer yönetici Ara'yı manuel seçiyorsa ve bu kişi listede yoksa 'Ara' atamasını engelle
-                if MGR['scenario'].get('ask_ara') and e['name'] not in ara_list and prop=='Ara':
-                    prop='Sabah'
-                if prev and prev.get(day)==prop:
-                    prop='Akşam' if prop=='Sabah' else 'Sabah'
-                if d_idx>0 and r[DAYS[d_idx-1]]==prop:
-                    prop='Akşam' if prop=='Sabah' else 'Sabah'
+                        prop = "Sabah" if idx<len(MGR["employees"])/2 else "Akşam"
+                elif scen=="erken":
+                    # Erken vardiya: rastgele 2 kişi sabahcıdan seçilir
+                    ship = MGR["scenario"].get("ship_hour",8)
+                    if d_i==0: prop = f"{int(ship):02d}:00-{int(ship)+8:02d}:30"
+                    elif (d_i==0) and emp["name"] not in random.sample([e["name"] for e in MGR["employees"]],2): prop="Sabah"
+                    else: prop = "Akşam"
+                else:
+                    prop = "Sabah" if (d_i+idx)%2==0 else "Akşam"
+                # Ara önceliği
+                if emp["name"] in ara and prop=="Sabah": prop="Ara"
+                if scen!="erken" and emp["name"] not in ara and prop=="Ara": prop="Sabah"
+                # Ardışık kontrol
+                if prev and prev.get(day)==prop: prop = "Akşam" if prop=="Sabah" else "Sabah"
+                if d_i>0 and r[DAYS[d_i-1]]==prop: prop = "Akşam" if prop=="Sabah" else "Sabah"
                 r[day]=prop
             rows.append(r)
-        raw=pd.DataFrame(rows); pretty=raw.applymap(lambda x:SHIFT_MAP.get(x,x))
-        st.dataframe(pretty,use_container_width=True)
-        MGR['history'].append({'week_start':str(week_start),'schedule':raw.to_dict('records')}); save_db(DB)
-        # haftalık izin kayıtlarını temizle
-        st.session_state['iz_entries'] = {}
-        st.download_button('Excel\'e Aktar',pretty.to_csv(index=False).encode('utf-8-sig'))
+        df_raw=pd.DataFrame(rows)
+        df_pre = df_raw.applymap(lambda x: SHIFT_MAP.get(x,x))
+        st.dataframe(df_pre,use_container_width=True)
+        MGR["history"].append({"week_start":str(week),"schedule":df_raw.to_dict("records")})
+        save_db(DB)
+        st.session_state["iz_entries"] = {}
+        st.download_button("Excel'e Aktar", df_pre.to_csv(index=False).encode('utf-8-sig'))
 
-# ── Geçmiş ─────────────────────────────────────────────
-if MENU=='Geçmiş':
-    st.header('📑 Geçmiş')
-    hist=MGR.get('history',[])
+# ───────────── Geçmiş Page ─────────────
+if menu=="Geçmiş":
+    st.header("📑 Geçmiş Vardiyalar")
+    hist = MGR.get("history",[])
     if not hist:
-        st.info('Kayıt yok')
+        st.info("Kayıt yok")
     else:
-        options=[f"Hafta: {h['week_start']}" for h in hist[::-1]]
-        choice=st.selectbox('Hafta',options)
-        rec=hist[::-1][options.index(choice)]
-        df=pd.DataFrame(rec['schedule']).applymap(lambda x:SHIFT_MAP.get(x,x))
-        st.dataframe(df,use_container_width=True)
-
-        col_clear,_=st.columns([1,5])
-        if col_clear.button('Geçmişi Temizle 🗑️'):
-            MGR['history'].clear(); save_db(DB)
-            st.success('Geçmiş temizlendi')
-            st.rerun()
+        opts=[f"Hafta: {h['week_start']}" for h in hist[::-1]]
+        choice=st.selectbox("Hafta",opts)
+        rec=hist[::-1][opts.index(choice)]
+        dfh=pd.DataFrame(rec['schedule']).applymap(lambda x:SHIFT_MAP.get(x,x))
+        st.dataframe(dfh,use_container_width=True)
+        if st.button("Geçmişi Sil 🗑️"):
+            MGR['history'].clear(); save_db(DB); st.success("Silindi"); st.rerun()
