@@ -89,7 +89,7 @@ st.sidebar.markdown(f"**Kullanıcı:** {USER}")
 
 MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
 # Özel not yeri
-st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️') Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️')
+st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı')
 
 # Menü
 MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
