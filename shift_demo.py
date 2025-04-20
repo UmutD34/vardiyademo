@@ -44,7 +44,15 @@ if 'user' not in st.session_state:
             st.session_state['user']=uname; st.rerun()
         else: st.error('Hatalı kullanıcı/şifre')
     st.stop()
-USER=st.session_state['user']; MGR=DB['managers'][USER]
+USER=st.session_state['user']
+MGR=DB['managers'][USER]
+# Senaryo anahtarları eksikse doldur
+MGR.setdefault('scenario',{})
+MGR['scenario'].setdefault('type','denge')
+MGR['scenario'].setdefault('ask_ara',False)
+MGR['scenario'].setdefault('ship_hour',8.0)
+MGR['scenario'].setdefault('early_days',[])
+save_db(DB)
 if st.sidebar.button('🔓 Oturumu Kapat'): del st.session_state['user']; st.rerun()
 st.sidebar.write(f'👤 {USER}')
 
