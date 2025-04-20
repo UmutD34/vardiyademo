@@ -161,6 +161,10 @@ if MENU == "Vardiya Oluştur":
                 # Haftalık tatil
                 if day == e.get("ht_day"):
                     r[day] = "H.T"; continue
-                if DAYS[(d_idx + 1) % 7] == e.get("ht_day"):
-                    r[day] = "Sabah"; continue
+                                if DAYS[(d_idx + 1) % 7] == e.get("ht_day"):
+                    r[day] = "Sabah"
+                    continue
+                if DAYS[(d_idx - 1) % 7] == e.get("ht_day"):
+                    r[day] = "Ara" if e["name"] in ara_list else "Akşam"
+                    continue
                 if DAYS[(
