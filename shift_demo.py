@@ -85,15 +85,15 @@ if st.sidebar.button('🔓 Oturumu Kapat'):
     del st.session_state['user']
     st.rerun()
 st.sidebar.markdown(f"**Kullanıcı:** {USER}")
-st.sidebar.write(f'👤 {USER}')
+
 
 MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
 # Özel not yeri
-st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️')('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️')
+st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️') Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️')
 
 # Menü
 MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
-# Veriler bö
+# Veriler bölümü
 if MENU == 'Veriler':
     st.header('Senaryo Ayarları')
     keys = list(SCENS.keys()); labels = list(SCENS.values())
@@ -198,7 +198,9 @@ if MENU == 'Vardiya Oluştur':
                 r[day] = shift
             rows.append(r)
         df = pd.DataFrame(rows)
-        # Gök:f"{v[0]}-{v[1]}" for k,v in SHIFT_TIMES.items()}
+        # Görsel tab
+ingi
+        time_map = {k:f"{v[0]}-{v[1]}" for k,v in SHIFT_TIMES.items()}
         shift_map = {**time_map, **SPECIAL}
         pretty = df.copy()
         for c in DAYS: pretty[c] = pretty[c].map(lambda x:shift_map.get(x,x))
