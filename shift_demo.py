@@ -197,15 +197,17 @@ if MENU == 'Vardiya Oluştur':
                         ef -= timedelta(hours=d_s['hours']); shift = f"{sf.strftime('%H:%M')}-{ef.strftime('%H:%M')}"
                 r[day] = shift
             rows.append(r)
+        # Görsel tablo oluştur
         df = pd.DataFrame(rows)
-        # Görsel tab
-ingi
-        time_map = {k:f"{v[0]}-{v[1]}" for k,v in SHIFT_TIMES.items()}
+        time_map = {k: f"{v[0]}-{v[1]}" for k, v in SHIFT_TIMES.items()}
         shift_map = {**time_map, **SPECIAL}
         pretty = df.copy()
-        for c in DAYS: pretty[c] = pretty[c].map(lambda x:shift_map.get(x,x))
+        for c in DAYS:
+            pretty[c] = pretty[c].map(lambda x: shift_map.get(x, x))
         st.dataframe(pretty, use_container_width=True)
-        MGR['history'].append({'week_start':str(week_start), 'schedule':rows}); save_db(DB)
+        # Kaydet ve indirme
+        MGR['history'].append({'week_start': str(week_start), 'schedule': rows})
+        save_db(DB)
         st.session_state['iz'] = {}
         st.download_button("Excel'e Aktar", pretty.to_csv(index=False).encode('utf-8-sig'))
 
