@@ -144,7 +144,22 @@ if MENU=='Vardiya Oluştur':
             iz_entries[ie] = {"day": iday, "type": ('Rapor' if itype == 'Rapor' else 'Yİ')}
             st.success('Eklendi')
 
-    if st.button('Vardiya Oluştur 🛠️'):
+    
+
+# ── Denkleştirme ──────────────────────────────────────
+with st.container():
+    st.subheader('🔄 Denkleştirme')
+    do_d = st.checkbox('Denkleştirme Yap')
+    if do_d:
+        emp_d = st.selectbox('Çalışan Seçin', [e['name'] for e in MGR['employees']], key='denkl_emp')
+        dk_hours = st.number_input('Kaç Saat Denkleştirme?', min_value=0.5, max_value=12.0, step=0.5, key='denkl_hours')
+        dk_day = st.selectbox('Fazla Çalışılacak Gün', DAYS, key='denkl_day')
+        dk_exit = st.selectbox('Erken Çıkış Günü (Opsiyonel)', [''] + DAYS, key='denkl_exit')
+        if st.button('Ekle Denkleştirme', key='add_denkl'):
+            st.session_state['denkl'] = {'emp': emp_d, 'hours': dk_hours, 'day': dk_day, 'exit': dk_exit}
+            st.success('Denkleştirme eklendi')
+
+if st.button('Vardiya Oluştur 🛠️'):
         last = MGR['history'][-1]['schedule'] if MGR['history'] else []
         def last_row(n):
             return next((r for r in last if r['Çalışan'] == n), None)
