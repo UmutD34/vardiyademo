@@ -87,6 +87,41 @@ if MENU=='Veriler':
 # ── Vardiya Oluştur ───────────────────────
 if MENU=='Vardiya Oluştur':
     st.header('Yeni Vardiya')
+    if not MGR['employees']:
+        st.warning('Çalışan yok')
+        st.stop()
+    week=st.date_input('Haftanın Pazartesi',datetime.today())
+    ara_list=st.multiselect('Ara vardiya', [e['name'] for e in MGR['employees']]) if MGR['scenario']['ask_ara'] else []
+
+    # İzin/Rapor ve Denkleştirme expanders
+    iz_entries=st.session_state.setdefault('iz',{})
+    with st.expander('İzin / Rapor'):
+        emp=st.selectbox('Çalışan',['—']+[e['name'] for e in MGR['employees']])
+        d=st.selectbox('Gün',DAYS)
+        t=st.selectbox('Tür',['Rapor','Yıllık İzin'])
+        if st.button('Ekle İzin'):
+            iz_entries[emp]={'day':d,'type':('Rapor' if t=='Rapor' else 'Yİ')}
+            st.success('Eklendi')
+    denkl=st.session_state.setdefault('denkl',None)
+    with st.expander('Denkleştirme'):
+        use=st.checkbox('Denkleştirme Yap')
+        if use:
+            emp_d=st.selectbox('Çalışan', [e['name'] for e in MGR['employees']], key='denkl_emp')
+            hrs=st.number_input('Kaç Saat (0.5 adım)',0.5,12.0,step=0.5, key='denkl_hrs')
+            day_d=st.selectbox('Fazla Çalışılacak Gün',DAYS, key='denkl_day')
+            exit_d=st.selectbox('Erken Çıkış Günü (Opsl.)',['']+DAYS, key='denkl_exit')
+            if st.button('Ekle Denkl'):
+                st.session_state['denkl']={'emp':emp_d,'hours':hrs,'day':day_d,'exit':exit_d}
+                st.success('Eklendi')
+
+    # Üretim butonu
+    if not st.button('Vardiya Oluştur 🛠️'):
+        st.info('Vardiya oluşturmak için butona tıklayın')
+        st.stop()
+
+    # Atama
+if MENU=='Vardiya Oluştur':
+    st.header('Yeni Vardiya')
     if not MGR['employees']: st.warning('Çalışan yok'); st.stop()
     week=st.date_input('Haftanın Pazartesi',datetime.today())
     ara_list=st.multiselect('Ara vardiya', [e['name'] for e in MGR['employees']]) if MGR['scenario']['ask_ara'] else []
