@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import streamlit as st
 
-PAGE_TITLE = "Şişecam Paşabahçe | Otomatik Vardiya Sistemi"
+PAGE_TITLE = "Şişecam Paşabahçe | Otomatik Vardiya Sistemi"
 DATA_FILE = "data.json"
 DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"]
 
@@ -91,7 +91,7 @@ if MENU == 'Veriler':
     idx = types.index(MGR['scenario']['type'])
     sel = st.radio('Senaryo', labels, index=idx)
     scen = types[labels.index(sel)]
-    ask_ara = st.checkbox('Ara vardiyaları manuel', value=MGR['scenario']['ask_ara'])
+    ask_ara = st.checkbox('Ara vardiyaları manuel (eğer bu seçenek seçilmez ise sistem eğer o gün 3 kişiden fazla kişi yıllık izin, raporlu, part-time gibi sebeplerle gelmemiş ise vardiyada en uygun bir kişiyi ara vardiyasına çeker)', value=MGR['scenario']['ask_ara'])
     ship_hour = MGR['scenario']['ship_hour']; early_days = MGR['scenario']['early_days']
     if scen=='erken':
         ship_hour = st.number_input('Sevkiyat Saati (örn.8.5=08:30)',0.0,23.5,step=0.5,value=float(ship_hour))
@@ -172,6 +172,18 @@ if MENU == 'Vardiya Oluştur':
                         ef-=timedelta(hours=d_s['hours']); shift=f"{sf.strftime('%H:%M')}-{ef.strftime('%H:%M')}"
                 r[day]=shift
             rows.append(r)
+        # Otomatik Ara Vardiya Ataması
+        if not MGR['scenario']['ask_ara']:
+            for day in DAYS:
+                missing = sum(1 for emp in rows if emp[day] in ['H.T','PT','Rapor','Yİ'])
+                if missing > 3:
+                    candidates = [emp['Çalışan'] for emp in rows if emp[day] in ['Sabah','Akşam']]
+                    if candidates:
+                        choice = random.choice(candidates)
+                        for emp in rows:
+                            if emp['Çalışan'] == choice:
+                                emp[day] = 'Ara'
+        # Cinsiyet kısıtı
         # Cinsiyet kısıtı: her gün, eğer bir kadın sabahçıyı varsa en az 2 erkek sabahçı olmalı
         for day in DAYS:
             morning = [emp['Çalışan'] for emp in rows if emp[day]=='Sabah']
