@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import streamlit as st
 
-PAGE_TITLE = "Şişecam Paşabahçe | Otomatik Vardiya Sistemi"
+PAGE_TITLE = "Şişecam Paşabahçe | Otomatik Vardiya Sistemi"
 DATA_FILE = "data.json"
 DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"]
 
@@ -84,8 +84,12 @@ save_db(DB)
 if st.sidebar.button('🔓 Oturumu Kapat'):
     del st.session_state['user']
     st.rerun()
+st.sidebar.markdown(f"**Kullanıcı:** {USER}")
 st.sidebar.write(f'👤 {USER}')
-st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️')
+
+MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
+# Özel not yeri
+st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️')&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı ❤️')
 
 # Menü
 MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
@@ -175,7 +179,7 @@ if MENU == 'Vardiya Oluştur':
                         shift = f"{h:02d}:{m:02d}-{h2:02d}:{m2:02d}"
                     elif scen == 'ayrik':
                         sab = sum(1 for d in DAYS if prev(e['name'],d) in ['Sabah','Ara'])
-                        akm = sum(1 for d in DAYS if prev(e['name'],d)=='Akşam'])
+                        akm = sum(1 for d in DAYS if prev(e['name'], d)=='Akşam')
                         shift = 'Akşam' if sab > akm else 'Sabah'
                     else:
                         shift = 'Sabah' if (di+idx)%2==0 else 'Akşam'
