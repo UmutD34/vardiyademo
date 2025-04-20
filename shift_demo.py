@@ -107,47 +107,64 @@ if MENU=='Vardiya Oluştur':
             if st.button('Ekle Denkl'): denkl={'emp':emp_d,'hours':hrs,'day':day_d,'exit':exit_d}; st.session_state['denkl']=denkl; st.success('Eklendi')
 
     # Atama
-    last=MGR['history'][-1]['schedule'] if MGR['history'] else []
-    def prev(emp,day): return next((r[day] for r in last if r['Çalışan']==emp),None)
-    rows=[]
-    for idx,e in enumerate(MGR['employees']):
-        for di,day in enumerate(DAYS):
-            # izin / PT / HT
-            ent=iz_entries.get(e['name']);
-            if ent and ent['day']==day: shift=ent['type']
-            elif e['pt'] and day in e['pt_days']: shift='PT'
-            elif day==e['ht_day']: shift='H.T'
+    last = MGR['history'][-1]['schedule'] if MGR['history'] else []
+    def prev(emp, day):
+        return next((r[day] for r in last if r['Çalışan'] == emp), None)
+
+    rows = []
+    for idx, emp in enumerate(MGR['employees']):
+        # Yeni satır sözlüğü oluştur
+        r = {'Çalışan': emp['name'], 'Sicil': emp['sicil']}
+        for di, day in enumerate(DAYS):
+            # İzin / PT / Haftalık Tatil
+            ent = iz_entries.get(emp['name'])
+            if ent and ent['day'] == day:
+                shift = ent['type']
+            elif emp['pt'] and day in emp['pt_days']:
+                shift = 'PT'
+            elif day == emp['ht_day']:
+                shift = 'H.T'
             else:
-                scen=MGR['scenario']['type']
-                # Erken Vardiya aşaması
-                if scen=='erken' and day in MGR['scenario']['early_days'] and e['name'] in random.sample([x['name'] for x in MGR['employees']],2):
-                    s=MGR['scenario']['ship_hour']; h,m=int(s),int((s-int(s))*60)
-                    h2,m2=int(s+8),int(((s+8)-int(s+8))*60)
-                    shift=f"{h:02d}:{m:02d}-{h2:02d}:{m2:02d}"
+                scen = MGR['scenario']['type']
+                # Erken vardiya logic
+                if scen == 'erken' and day in MGR['scenario']['early_days'] and emp['name'] in random.sample([e['name'] for e in MGR['employees']], 2):
+                    s = MGR['scenario']['ship_hour']; h, m = int(s), int((s-h)*60)
+                    h2, m2 = int(s+8), int(((s+8)-int(s+8))*60)
+                    shift = f"{h:02d}:{m:02d}-{h2:02d}:{m2:02d}"
                 else:
-                    # denge veya ayrık
-                    if scen=='ayrik':
-                        sab=sum(1 for d in DAYS if prev(e['name'],d) in ['Sabah','Ara'])
-                        akm=sum(1 for d in DAYS if prev(e['name'],d)=='Akşam')
-                        shift='Akşam' if sab>akm else 'Sabah'
+                    if scen == 'ayrik':
+                        sab = sum(1 for d in DAYS if prev(emp['name'], d) in ['Sabah','Ara'])
+                        akm = sum(1 for d in DAYS if prev(emp['name'], d) == 'Akşam')
+                        shift = 'Akşam' if sab > akm else 'Sabah'
                     else:
-                        half=len(MGR['employees'])/2
-                        shift='Sabah' if idx<half else 'Akşam'
-                # Ara
-                if e['name'] in ara_list and shift=='Sabah': shift='Ara'
-            # Denklştirme apply
-            if denkl and denkl['emp']==e['name']:
-                if day==denkl['day'] and shift in SHIFT_TIMES:
-                    stime,etime=SHIFT_TIMES[shift]
-                    sf=datetime.strptime(stime,'%H:%M'); ef=datetime.strptime(etime,'%H:%M')
-                    ef+=timedelta(hours=denkl['hours']); shift=f"{sf.strftime('%H:%M')}-{ef.strftime('%H:%M')}"
-                if denkl['exit'] and day==denkl['exit'] and shift in SHIFT_TIMES:
-                    stime,etime=SHIFT_TIMES[prev(e['name'],day) or shift]
-                    sf=datetime.strptime(stime,'%H:%M'); ef=datetime.strptime(etime,'%H:%M')
-                    ef-=timedelta(hours=denkl['hours']); shift=f"{sf.strftime('%H:%M')}-{ef.strftime('%H:%M')}"
-            rows.append({'Çalışan':e['name'],**{day:shift}})
-    df=pd.DataFrame(rows)
-    st.dataframe(df, use_container_width=True)
+                        half = len(MGR['employees']) / 2
+                        shift = 'Sabah' if idx < half else 'Akşam'
+                    # Ara vardiya tercihi
+                    if emp['name'] in ara_list and shift == 'Sabah':
+                        shift = 'Ara'
+            # Denkleştirme apply
+            if denkl and denkl['emp'] == emp['name']:
+                if day == denkl['day'] and shift in SHIFT_TIMES:
+                    start, end = SHIFT_TIMES[shift]
+                    sf = datetime.strptime(start, '%H:%M'); ef = datetime.strptime(end, '%H:%M')
+                    ef += timedelta(hours=denkl['hours']); shift = f"{sf.strftime('%H:%M')}-{ef.strftime('%H:%M')}"
+                if denkl['exit'] and day == denkl['exit'] and shift in SHIFT_TIMES:
+                    start, end = SHIFT_TIMES.get(prev(emp['name'], day), SHIFT_TIMES.get(shift))
+                    sf = datetime.strptime(start, '%H:%M'); ef = datetime.strptime(end, '%H:%M')
+                    ef -= timedelta(hours=denkl['hours']); shift = f"{sf.strftime('%H:%M')}-{ef.strftime('%H:%M')}"
+            r[day] = shift
+        rows.append(r)
+    # DataFrame oluştur ve zamanları görsel olarak değiştir
+    df = pd.DataFrame(rows)
+    # Zaman formatı için haritalama
+    time_map = {k: f"{v[0]}-{v[1]}" for k, v in SHIFT_TIMES.items()}
+    special_map = SPECIAL.copy()
+    shift_map = {**time_map, **special_map}
+    pretty = df.copy()
+    for col in DAYS:
+        pretty[col] = pretty[col].map(lambda x: shift_map.get(x, x))
+    pretty['Sicil'] = df['Sicil']
+    st.dataframe(pretty, use_container_width=True)
     MGR['history'].append({'week_start':str(week),'schedule':rows}); save_db(DB)
     st.session_state['iz']={}; st.download_button('Excel',df.to_csv(index=False).encode('utf-8-sig'))
 
