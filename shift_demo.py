@@ -81,8 +81,8 @@ save_db(DB)
 if st.sidebar.button('🔓 Oturumu Kapat'):
     del st.session_state['user']; st.rerun()
 st.sidebar.markdown(f"**Kullanıcı:** {USER}")
-st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı')
 MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
+st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir & Aşk ile Yapıldı ❤️')
 
 # Veriler
 if MENU == 'Veriler':
