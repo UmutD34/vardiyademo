@@ -90,10 +90,8 @@ st.sidebar.markdown(f"**Kullanıcı:** {USER}")
 MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
 # Özel not yeri
 st.sidebar.markdown('Palladium&Hiltown Paşabahçe Magazaları Üretimidir Aşk ile Yapıldı')
-# Menü
-MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
-MENU = st.sidebar.radio('Menü', ['Vardiya Oluştur','Veriler','Geçmiş'])
-# Veriler bölümü
+
+# Veriler bölümü bölümü
 if MENU == 'Veriler':
     st.header('Senaryo Ayarları')
     keys = list(SCENS.keys()); labels = list(SCENS.values())
